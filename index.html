@@ -3,10 +3,17 @@
 
 <head>
   <meta charset="UTF-8">
-  <script type="text/javascript" src="./js/gl.js"></script>
-  <script type="text/javascript" src="./js/jquery.js"></script>
-  <script type="text/javascript">
+  <script type="text/javascript" src="js/gl-matrix-2.4.0.min.js">
+  </script>
+  <script type="text/javascript" src="/js/jquery.js"></script>
 
+  <script type="text/javascript">
+    var mMatrix = mat4.create();
+    var vMatrix = mat4.create();
+    var pMatrix = mat4.create();
+
+    var triangleVertexPositionBuffer;
+    var squareVertexPositionBuffer;
 
     $(function () {
       iniciaWebGL();
@@ -93,11 +100,33 @@
 
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         alert(gl.getShaderInfoLog(shader));
-        console.log('fail')
         return null;
       }
 
       return shader;
+    }
+
+    function iniciarShaders() {
+      var vertexShader = getShader(gl, "#shader-vs");
+      var fragmentShader = getShader(gl, "#shader-fs");
+
+      shaderProgram = gl.createProgram();
+      gl.attachShader(shaderProgram, vertexShader);
+      gl.attachShader(shaderProgram, fragmentShader);
+      gl.linkProgram(shaderProgram);
+
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert("Não pode inicializar shaders");
+      }
+
+      gl.useProgram(shaderProgram);
+
+      shaderProgram.vertexPositionAttribute = gl.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+      shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+      shaderProgram.vMatrixUniform = gl.getUniformLocation(shaderProgram, "uVMatrix");
+      shaderProgram.mMatrixUniform = gl.getUniformLocation(shaderProgram, "uMMatrix");
     }
 
     function iniciarBuffers() {
@@ -164,37 +193,26 @@
     }
   </script>
 
-
   <script id="shader-vs" type="x-shader/x-vertex">
-    attribute vec3 aVertexPosition;
-    
-    uniform mat4 uMMatrix;
-    uniform mat4 uVMatrix;
-    uniform mat4 uPMatrix;
-    var mMatrix = mat4.create();
-    var vMatrix = mat4.create();
-    var pMatrix = mat4.create();
-
-    var triangleVertexPositionBuffer;
-    var squareVertexPositionBuffer;
-    
-    void main(void)
-    {
+  attribute vec3 aVertexPosition;
+  uniform mat4 uMMatrix;
+  uniform mat4 uVMatrix;
+  uniform mat4 uPMatrix;
+  void main(void)
+  {
       gl_Position = uPMatrix * uVMatrix * uMMatrix *
-        vec4(aVertexPosition, 1.0);
-    }
-  </script>
-
+      vec4(aVertexPosition, 1.0);
+  }
+</script>
   <script id="shader-fs" type="x-shader/x-fragment">
-    precision mediump float;
-    
-    void main(void)
-    {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-  </script>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  precision mediump float;
+  
+  void main(void)
+  {
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+  }
+</script>
+
   <link rel="stylesheet" href="styles.css">
   <title>Pre Trabalho</title>
 </head>
@@ -208,8 +226,10 @@
         <span>Henrique Vitorino</span>
       </div>
     </div>
-    <canvas id="canvas-webgl" width="500px" height="500px" style="border:none">
-    </canvas>
+    <div class="content">
+      <canvas id="canvas-webgl" width="500px" height="500px" style="border:none">
+      </canvas>
+    </div>
 
   </div>
 </body>

@@ -20,4 +20,9 @@ height: 100vh;
   display: inline-block;
 }
 
-
+.content{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-top:50px;
+}
